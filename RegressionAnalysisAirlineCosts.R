@@ -5,12 +5,19 @@ names(air)
 #airmod <- lm(log(Cost) ~ Capacity+Length+TonMileloadfactor+FlightTime+Populationserved+Speed+AdjustedAssets, data=air)
 
 airmod <- lm(log(Cost) ~ log(Capacity)+log(Length)+TonMileloadfactor+log(FlightTime)+log(Populationserved)+log(Speed)+log(TotalAssets)+log(InvestmentsandSpecialFunds)+log(AdjustedAssets)+log(Revenue), data=air)
-coef(airmod)
-summary(airmod)
-layout(matrix(1:2,ncol=9))
-plot(Cost ~ Capacity+Length+TonMileloadfactor+FlightTime+Populationserved+Speed+AdjustedAssets, data=air)
-abline(airmod)
-plot(airmod, which = 1) 
+airwithcorr <- lm(log(Cost) ~ log(Capacity) + TonMileloadfactor + log(FlightTime), data=air)
+coef(airwithcorr)
+summary(airwithcorr)
+#
+#plot(Cost ~ Capacity+Length+TonMileloadfactor+FlightTime+Populationserved+Speed+AdjustedAssets, data=air)
+layout(matrix(1:2,ncol=2))
+abline(airwithcorr)
+plot(airwithcorr, which = 1)
+grid()
+abline(hmod)
+plot(airwithcorr, which = 2)
+grid()
+ 
 
 
 
