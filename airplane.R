@@ -16,8 +16,8 @@ plot_Time <- data.frame( x=log(data_airplane$Time), y=log(data_airplane$Cost) )
 plot_Capacity <- data.frame( x=data_airplane$Capacity, y=data_airplane$Cost )
 
 print("MEASUREMENT OF THE FIT")
-log_model <- lm(Cost ~ log(Time), data = data_airplane)
-linear_model6 <- lm(Cost ~ poly(LoadFactor, 6, raw = TRUE), data = data_airplane)
+log_model <- lm(Cost ~ Time, data = data_airplane)
+linear_model6 <- lm(Cost ~ LoadFactor, 6, raw = TRUE), data = data_airplane)
 linear_model4 <- lm(Cost ~ poly(Capacity, 4, raw = TRUE), data = data_airplane)
 
 print("CREATION OF SCATTERPLOT")
@@ -28,7 +28,7 @@ ggplot(plot_Time, aes(x=x, y=y), , fill=group) +
   labs(title='log-log Plot', x='Time', y='Cost')+
   stat_smooth(method = "lm", formula = y ~ x, col = "red") +
   annotate(geom="label", x = 1.2, y = 6.5,  label = as.expression(paste("logarithm regression:\n", "y = (", round(log_model$coefficients[1]*1.e-3,2)," + ",
-                                                                        round(log_model$coefficients[2]*1.e-3,2), "log(x))*10^3")), fill="white",size=5.5, hjust = 0, vjust = 1)
+                                                                        round(log_model$coefficients[2]*1.e-3,2), "x)*10^3")), fill="white",size=5.5, hjust = 0, vjust = 1)
 ggplot(plot_LoadFactor, aes(x=x, y=y)) +
   geom_point()+
   labs(title='Plot', x='LoadFactor', y='Cost')+
@@ -57,9 +57,18 @@ ggplot(plot_Capacity, aes(x=x, y=y)) +
  
 
 print("CALCULATION OF THE RELATION BETWEEN: COST AND CAPACITY, TOTALASSETS, INVESTMENTS")
-aiplane_model <-lm(Cost ~ log(Time)+poly(LoadFactor, 6, raw = TRUE)+poly(Capacity, 4, raw = TRUE), data = data_airplane)
+aiplane_model <-lm(Cost ~ exp(Time):poly(LoadFactor, 6, raw = TRUE):poly(Capacity, 4, raw = TRUE), data = data_airplane)
 coef(aiplane_model)
 summary(aiplane_model)
+
+aiplane_model <-lm(log(Cost) ~ log(Time)+log(poly(LoadFactor, 6, raw = TRUE))+log(poly(Capacity, 4, raw = TRUE)), data = data_airplane)
+coef(aiplane_model)
+summary(aiplane_model)
+
+print("CALCULATION OF THE RELATION BETWEEN: COST AND CAPACITY, TOTALASSETS, INVESTMENTS with interactions")
+aiplane_model <-lm(Cost ~Time+poly(LoadFactor, 6, raw = TRUE)+poly(Capacity, 4, raw = TRUE) +log(Time):LoadFactor, data = data_airplane)
+coef(aiplane_model)
+summary(aiplane_model) #useless!!! doesn't work
 
 
 print("CALCULATION OF THE REGRESSION BETWEEN ALL COEFFICIENTS")
@@ -85,12 +94,18 @@ abline(aiplane_model)
 plot(aiplane_model, which = 2)
 
 
+print("HISTOGRAM PLOT")
 
-
-
-
-
-
+fg <- fitdist(data_airplane$Cost, "gamma") 
+summary(fg)
+fln <- fitdist(data_airplane$Cost, "lnorm") 
+fn <- fitdist(data_airplane$Cost, "norm") 
+fgaus <- fitdist(data_airplane$Cost, "gauss") 
+#fp <- fitdist(data_airplane$Cost[data_airplane$Cost<150], "pois")  DOESNT WORK
+hist(data_airplane$Cost, breaks=20,xlab="Cost",main="",xlim=c(0,800),col="blue")
+denscomp(list(fg,fln,fn),main="",xlab="Cost")
+qqcomp(list(fg,fln,fn),xlab="Cost")
+print(data_airplane$Cost)
 
 
 
@@ -133,3 +148,16 @@ points(sample_data$x, sample_data$y4, col='blue')
 
 #persp(data_airplane$LoadFactor,data_airplane$Time,data_airplane$Cost)
 #install.packages("scatterplot3d")
+
+#gf <- goodfit(data_airplane$Cost, "poisson")
+#summary(gf)
+#plot(gf,main="Count data vs Poisson distribution")
+layout(matrix(1:1,ncol=1))
+library(fitdistrplus)
+hist(data_airplane$Cost, breaks=20,xlab="Cost",main="",xlim=c(0,800),col="white",)
+gf <- plotdist(data_airplane$Cost[data_airplane$Cost < 300], histo = TRUE, demp = TRUE)
+summary(gf)
+# Superposer la courbe de densité de probabilité ajustée sur l'histogramme
+hist(data_airplane$Cost, breaks=20,xlab="Cost",main="",xlim=c(0,800),col="darkmagenta",)
+lines(gf, xlim = c(0, max(data_airplane$Cost)), col = "blue")
+
